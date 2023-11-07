@@ -1,0 +1,88 @@
+﻿@page
+@model ListModel
+@{
+
+}
+<table>
+	<thead>
+		<tr>
+			<th>@Html.DisplayNameFor(m => m.MyDataSet[0].Name)</th>
+			<th>@Html.DisplayNameFor(m => m.MyDataSet[0].Krank)</th>
+			<th>@Html.DisplayNameFor(m => m.MyDataSet[0].MuellGemacht)</th>
+			<th>@Html.DisplayNameFor(m => m.MyDataSet[0].KuecheGemacht)</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@if (Model.MyDataSet != null)
+		{
+			@for (int i = 0; Model.MyDataSet.Count() > i; i++)
+			{
+				<tr>
+					<td>@Model.MyDataSet[i].Name</td>
+					@if (Model.MyDataSet[i].Krank != null || Model.MyDataSet[i].Krank.Count != 0)
+					{
+						<td>
+							@for (int e = 0; Model.MyDataSet[i].Krank.Count > e; e++)
+							{
+								<span>• @DateTime.Parse((Model.MyDataSet[i].Krank[e]).ToString())</span>
+								@if ((e + 1) < Model.MyDataSet[i].Krank.Count)
+								{
+									<br />
+								}
+							}
+						</td>
+					}
+					else
+					{
+						<td>•</td>
+					}
+
+					@if (Model.MyDataSet[i].MuellGemacht != null || Model.MyDataSet[i].MuellGemacht.Count != 0)
+					{
+						<td>
+							@for (int e = 0; Model.MyDataSet[i].MuellGemacht.Count > e; e++)
+							{
+								<span>• @DateTime.Parse((Model.MyDataSet[i].MuellGemacht[e]).ToString())</span>
+								@if ((e + 1) < Model.MyDataSet[i].MuellGemacht.Count)
+								{
+									<br />
+								}
+							}
+						</td>
+					}
+					else
+					{
+						<td>•</td>
+					}
+
+					@if (Model.MyDataSet[i].KuecheGemacht != null || Model.MyDataSet[i].KuecheGemacht.Count != 0)
+					{
+						<td>
+							@for (int e = 0; Model.MyDataSet[i].KuecheGemacht.Count > e; e++)
+							{
+								<span>• @DateTime.Parse((Model.MyDataSet[i].KuecheGemacht[e]).ToString())</span>
+								@if (e + 1 < Model.MyDataSet[i].KuecheGemacht.Count)
+								{
+									<br />
+								}
+							}
+						</td>
+					}
+					else
+					{
+						<td>•</td>
+					}
+				
+					<td>
+						<form method="get">
+							<a asp-page="./edit" asp-route-id="@Model.MyDataSet[i].ID">Edit</a> |
+							<a asp-page="./delete" asp-route-id="@Model.MyDataSet[i].ID">Delete</a> |
+							<a asp-page="./details" asp-route-id="@Model.MyDataSet[i].ID">Details</a>
+						</form>
+					</td>
+				</tr>
+			}
+		}
+	</tbody>
+</table>

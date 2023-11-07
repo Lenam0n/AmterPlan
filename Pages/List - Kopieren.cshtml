@@ -1,0 +1,53 @@
+﻿@page
+@model ListModel1
+@{	
+}
+<table>
+	<thead>
+		<tr>
+			<th>@Html.DisplayNameFor(m => m.MyData[0].Name)</th>
+			<th>@Html.DisplayNameFor(m => m.MyData[0].Krank)</th>
+			<th>@Html.DisplayNameFor(m => m.MyData[0].MuellGemacht)</th>
+			<th>@Html.DisplayNameFor(m => m.MyData[0].KuecheGemacht)</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+
+
+
+
+	
+@foreach(var i in Model.MyData)
+	{
+		<tr>
+			<td>
+				<span>
+					@Html.DisplayFor(data => i.Name)
+				</span>
+			</td>
+			<td>
+				<span>
+					@Html.DisplayFor(data => i.Krank)
+				</span>
+			</td>
+			<td>
+				<span>
+					@Html.DisplayFor(data => i.MuellGemacht)
+				</span>
+			</td>
+			<td>
+				<span>
+					@Html.DisplayFor(data => i.KuecheGemacht)
+				</span>
+			</td>
+			<td>
+				<a asp-page="./edit" asp-route-id="@i.ID">Edit</a> |
+				<a asp-page="./delete" asp-route-id="@i.ID">Delete</a> |
+				<a asp-page="./details" asp-route-id="@i.ID">Details</a>
+			</td>
+		</tr>
+	}
+
+	</tbody>
+</table>

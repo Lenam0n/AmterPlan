@@ -1,0 +1,48 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<h1>Wochenplan</h1>
+<h2>Abfalldienst für diese Woche:</h2>
+<p>
+    @foreach (var i in @Model.MuellTeam)
+    {
+        <span> @i.Name</span>
+    }
+
+    
+</p>
+<h2>Küchendienst für diese Woche:</h2>
+<p>
+    @foreach (var i in @Model.KucheTeam)
+    {
+        <span> @i.Name</span>
+    }
+
+
+</p>
+<h2>Personen:</h2>
+<ul>
+    @foreach (var person in Model.MyDataSet)
+    {
+        <li>@person.Name</li>
+    }
+</ul>
+<form method="post">
+    <label asp-for="krankePerson">Kranke Person:</label>
+    <select id="krankePerson" asp-for="krankePerson">
+        @foreach(var e in Model.Team)
+        {
+            <option value="@e.ID">@e.Name</option> 
+        }
+    </select>
+    <label for="teamType">Team Typ:</label>
+    <select id="teamType" asp-items="@Model.Types">
+    </select>
+    <button type="submit" asp-page-handler="KrankMelden">Krank Melden</button>
+</form>
+
+
+
