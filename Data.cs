@@ -17,7 +17,7 @@ namespace BautzPages
 		[Display(Name = "Krank Tag")]
         public List<DateTime>? Krank { get; set; }
         public bool Active { get; set; }
-        public bool nichtDa { get; set; }
+        public string currentAmt { get; set; }
 
     }
 }

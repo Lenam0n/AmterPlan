@@ -12,7 +12,7 @@ namespace BautzPages.Pages
 
         public ListModel1()
         {
-            MyDataSet = jsonInitialize();
+            MyDataSet = jsonInitialize("data");
         }
 
 		public void OnGet()

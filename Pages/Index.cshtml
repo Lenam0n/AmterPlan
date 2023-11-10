@@ -16,7 +16,7 @@
 </p>
 <h2>Küchendienst für diese Woche:</h2>
 <p>
-    @foreach (var i in @Model.KucheTeam)
+    @foreach (var i in Model.KucheTeam)
     {
         <span> @i.Name</span>
     }
@@ -42,7 +42,9 @@
     <select id="teamType" asp-items="@Model.Types">
     </select>
     <button type="submit" asp-page-handler="KrankMelden">Krank Melden</button>
+    <button type="submit" asp-page-handler="Praktikum">Praktikum</button>
 </form>
-
-
+<form method="post">
+    
+</form>
 

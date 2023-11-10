@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using BautzPages;
+using Microsoft.AspNetCore.Http;
+using System.Net.Http;
 
 namespace BautzPages.Pages
 {
@@ -14,7 +16,6 @@ namespace BautzPages.Pages
     {
         public List<Data> MyDataSet;
         public List<Data> MitarbeiterListe;
-        public List<Data> MitarbeiterListe_Krank;
         public ObservableList<Data> MuellTeam;
         public ObservableList<Data> KucheTeam;
         public List<Data> Team;
@@ -22,23 +23,14 @@ namespace BautzPages.Pages
         public List<SelectListItem> Types;
         [BindProperty]
         public int krankePerson {  get; set; }
-
         public IndexModel() {
-            MyDataSet = jsonInitialize();
+            MyDataSet = jsonInitialize("data");
             MitarbeiterListe = new List<Data>();
-            //krankePerson = 0;
             foreach (var item in MyDataSet)
             {
+                item.currentAmt = "";
                 MitarbeiterListe.Add(item);
             }
-
-            
-            MitarbeiterListe_Krank = new List<Data>();
-
-            MuellTeam = new ObservableList<Data>();
-            KucheTeam = new ObservableList<Data>();
-
-            Team = new List<Data>();
 
             Types = new List<SelectListItem>
             {
@@ -46,69 +38,138 @@ namespace BautzPages.Pages
                 new SelectListItem { Text = "Küche", Value = "Müll" }
             };
 
-            if (MyDataSet.Count > 0)
-            {
-                List<Data> TempList = new List<Data>
-                {
-                    MitarbeiterSelection("Müll"),
-                    MitarbeiterSelection("Müll")
-                };
-                MuellTeam.Add(TempList[0]);
-                MuellTeam.Add(TempList[1]);
-                TempList = new List<Data>
-                {
-                    MitarbeiterSelection("Küche"),
-                    MitarbeiterSelection("Küche")
-                };
-                KucheTeam.Add(TempList[0]);
-                KucheTeam.Add(TempList[1]);
-                Team.Add(MuellTeam[0]);
-                Team.Add(MuellTeam[1]);
-                Team.Add(KucheTeam[0]);
-                Team.Add(KucheTeam[1]);
-            }
+            MuellTeam = new ObservableList<Data>();
+            KucheTeam = new ObservableList<Data>();
 
-            KucheTeam.ListChanged += (sender, e) =>
+            Team = new List<Data>();
+            int calendarWeek = GetKW(DateTime.Now);
+
+            if (!System.IO.File.Exists("TeamKW_" + calendarWeek + ".json"))
             {
-                // Handle the list change event by updating the Team list
-                Team.Clear();
-                Team.AddRange(KucheTeam);
-                Team.AddRange(MuellTeam);
-            };            
-            MuellTeam.ListChanged += (sender, e) =>
+                if (MyDataSet.Count > 0)
+                {
+                    List<Data> TempList = new List<Data>
+                    {
+                        MitarbeiterSelection("Müll"),
+                        MitarbeiterSelection("Müll")
+                    };
+                    MuellTeam.Add(TempList[0]);
+                    MuellTeam.Add(TempList[1]);
+                    TempList = new List<Data>
+                    {
+                        MitarbeiterSelection("Küche"),
+                        MitarbeiterSelection("Küche")
+                    };
+                    KucheTeam.Add(TempList[0]);
+                    KucheTeam.Add(TempList[1]);
+                    Team.Add(MuellTeam[0]);
+                    Team.Add(MuellTeam[1]);
+                    Team.Add(KucheTeam[0]);
+                    Team.Add(KucheTeam[1]);
+
+                }
+
+                foreach (var item in MuellTeam)
+                {
+                    item.Muell += 1;
+                    item.Active = true;
+                    item.currentAmt = "mull";
+                    item.MuellGemacht.Add(DateTime.Now);
+                }            
+                foreach (var item in KucheTeam)
+                {
+                    item.Kueche += 1;
+                    item.Active = true;
+                    item.currentAmt = "kuche";
+                    item.KuecheGemacht.Add(DateTime.Now);
+                }
+
+
+                KucheTeam.ListChanged += (sender, e) =>
+                {
+                    // Handle the list change event by updating the Team list
+                    Team.Clear();
+                    Team.AddRange(KucheTeam);
+                    Team.AddRange(MuellTeam);
+                };
+                MuellTeam.ListChanged += (sender, e) =>
+                {
+                    // Handle the list change event by updating the Team list
+                    Team.Clear();
+                    Team.AddRange(KucheTeam);
+                    Team.AddRange(MuellTeam);
+                };
+                jsonExporter(Team, MitarbeiterListe);
+            }
+            else
             {
-                // Handle the list change event by updating the Team list
-                Team.Clear();
-                Team.AddRange(KucheTeam);
-                Team.AddRange(MuellTeam);
-            };
+                Team = jsonInitialize("TeamKW_" + GetKW(DateTime.Now));
+
+                foreach(var item in Team)
+                {
+                    switch (item.currentAmt)
+                    {
+                        case "mull":
+                            MuellTeam.Add(item);
+                            break;
+                        case "kuche":
+                            KucheTeam.Add(item);
+                            break;
+                    }
+                }
+            }
 
         }
 
 
-        public void OnPostKrankMelden()
+        public IActionResult OnPostKrankMelden()
         {
-            Random random = new Random();
-            krankePerson = int.Parse(Console.ReadLine());
-
-            //if (krankePerson == 0) {  return RedirectToPage(); }
-            var result = MyDataSet.FirstOrDefault(item => item.ID == krankePerson);
-            //if (result == null ) { return RedirectToPage(); }
+            var result = Team.FirstOrDefault(item => item.ID == krankePerson);
             result.Krank.Add(DateTime.Now);
+            
             if(KucheTeam.Contains(result)) 
             {
                 KucheTeam.Remove(result);
-                result.Active = false;
+                result.Kueche -= 1;
+                result.KuecheGemacht.Remove(result.KuecheGemacht[result.KuecheGemacht.Count -1]);
                 KucheTeam.Add(MitarbeiterSelection("Küche"));
+                if (KucheTeam[KucheTeam.Count - 1] == null)
+                {
+                    return RedirectToPage("./error");
+                }
+                MuellTeam[MuellTeam.Count - 1].Active = true;
+                KucheTeam[KucheTeam.Count - 1].Kueche += 1;
+                KucheTeam[KucheTeam.Count - 1].currentAmt = "mull";
+                KucheTeam[KucheTeam.Count - 1].KuecheGemacht.Add(DateTime.Now);
+
             }
-            if(MuellTeam.Contains(result))  {
-                result.Active = false;
+            if(MuellTeam.Contains(result))  
+            {
                 MuellTeam.Remove(result);
-                MuellTeam.Add(MitarbeiterSelection("Müll")); 
+                result.Muell -= 1;
+                result.MuellGemacht.Remove(result.MuellGemacht[result.MuellGemacht.Count -1]);
+                MuellTeam.Add(MitarbeiterSelection("Müll"));
+                if (MuellTeam[MuellTeam.Count - 1] == null)
+                {
+                    return RedirectToPage("./error");
+                }
+                MuellTeam[MuellTeam.Count - 1].Active = true;
+                MuellTeam[MuellTeam.Count - 1].Muell += 1;
+                MuellTeam[MuellTeam.Count - 1].currentAmt = "mull";
+                MuellTeam[MuellTeam.Count - 1].MuellGemacht.Add(DateTime.Now);
             }
+            result.Active = false;
+            Team.Clear();
+            Team.Add(MuellTeam[0]);
+            Team.Add(MuellTeam[1]);
+            Team.Add(KucheTeam[0]);
+            Team.Add(KucheTeam[1]);
 
+            if(Team.Count >= 4) { jsonExporter(Team, MitarbeiterListe, "y"); }
+            
+            
 
-            //return Page();
+            return Page();
         }
 
 
@@ -143,9 +204,12 @@ namespace BautzPages.Pages
             return selectedPerson;
         }
 
+       
+
+
     }
 
-
+}
 
 
 
@@ -219,4 +283,3 @@ namespace BautzPages.Pages
     }
     }*/
 
-}
